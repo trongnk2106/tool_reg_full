@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>FACE REG DATASET</title>
+  <link href="static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="static/css/base.css" rel="stylesheet">
+  <link href="static/css/single.css" rel="stylesheet">
+  <script type="text/javascript" src="static/js/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="static/js/downloadvideo.js"></script>
+  <script src="https://kit.fontawesome.com/3034ce02d7.js" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="header">
+      <nav class="navbar navbar-dark bg-dark" style="background-color: #878a8a; padding: 4px 16px">
+        <div class="col-md-6 col-sm-6" style="text-align: left;"> 
+            <img src="static/figure/logo.png" alt="Logo AI" width="40" height="40">
+            <h3 class="navbar-brand">Face Reg Label Tool</h3>
+        </div>
+        <div class="col-md-2 col-sm-2">
+        </div>
+        <div class="col-md-4 navbar-link" > 
+          <a href="/fr_data_collector/" title="Home" > Home </a> 
+          <a href="/fr_data_collector/home" title="Streaming" > Streaming </a>
+          <a href="/fr_data_collector/dataset?index=1" title="Database" class="active" > Database </a>
+        </div>
+      </nav>
+    </div>
+    <div class="alert alert-success" style="display:none;" role="alert" id="respMessage"></div>
+    <div class="container-fluid" style="margin-top:50px; padding: 0 5% 0 8%;">
+      <div class="row" id='db_face'>
+        <div class="col" id='info'>
+          <div class="header-text" style="margin-left: -15px;"><h4 >Information:</h4></div>
+        </div>
+        <div class="col" >
+          <div class="header-text"><h4>Face Collection:</h4></div> 
+            <div class='row' id='list_img_face'></div>
+        </div>
+      </div>
+      <div class="row button-all">
+        <button type="button" class="btn btn-success btn-xs" onclick="window.location=document.referrer" ><i class="fa"></i>Back</button>
+        <button type="button" class="btn btn-success btn-xs" onclick="modify_info(data['info']['id'])" ><i class="fa"></i>Save</button>
+        <button type="button" class="btn btn-success btn-xs" onclick="download(data['info']['id'])" ><i class="fa"></i>Download</button>
+      </div>
+  </div> 
+  <!--- SCRIPTS --->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> -->
+</body>
+
+<script type="text/javascript">
+var data = '{{ data | tojson}}';
+data = JSON.parse(data);
+console.log(data);
+$(document).ready(function(){
+    console.log(data)
+
+    path_face = data['path_face']
+    keys = Object.keys(data['info'])
+    console.log(keys)
+    keys = ["name", "id", "age", "gender"]
+    for (var i = 0; i < keys.length; i++){
+
+        row_div = document.createElement('div');
+        row_div.setAttribute('class', 'form-group row')
+
+        label = document.createElement('label');
+        label.setAttribute("style", "background-color: #ffffff; padding-right: 15px; padding-left: 2px; font-weight:600; color: #00B4CC");
+        label.setAttribute("class", "col-sm-2 col-form-label");
+        label.innerHTML = keys[i].toUpperCase();
+        row_div.appendChild(label);
+
+        col_div = document.createElement('div');
+        col_div.setAttribute('class', 'col-sm-10')
+        col_div.setAttribute('style', 'margin: 0px; padding: 0px 0px;')
+        row_div.appendChild(col_div);
+        
+        input = document.createElement('input');
+        input.setAttribute('class', 'col-sm-10');
+        input.setAttribute('id', keys[i]);
+        input.setAttribute('name', keys[i]);
+        input.setAttribute('type', 'text');
+        input.setAttribute('style', 'background-color: #ffffff; border: none; padding: 8px 14px; width: 100%;')
+        input.setAttribute('placeholder', 'Enter ' + keys[i]);
+        input.value = data['info'][keys[i]]
+        col_div.appendChild(input);
+        
+
+        document.getElementById('info').appendChild(row_div);
+    }
+
+    // row_div = document.createElement('div');
+    // row_div.setAttribute('style','margin-top:20px; padding-right:40%; margin-left:-15px')
+
+    // back_btn = document.createElement('button');
+    // back_btn.setAttribute('class', 'btn btn-success');
+    // back_btn.setAttribute("onclick","window.location=document.referrer;"); 
+    // back_btn.setAttribute('name', 'modify');
+    // back_btn.innerHTML = 'Back'
+    // row_div.appendChild(back_btn);
+
+    // modify_btn = document.createElement('button');
+    // modify_btn.setAttribute('class', 'btn btn-success');
+    // modify_btn.setAttribute('style','margin:10px');
+    // modify_btn.setAttribute("onclick","modify_info(data['info']['id'])"); 
+    // modify_btn.setAttribute('name', 'modify');
+    // modify_btn.innerHTML = 'Save'
+    // row_div.appendChild(modify_btn);
+
+    // dow_btn = document.createElement('button');
+    // dow_btn.setAttribute('class', 'btn btn-success');
+    // dow_btn.setAttribute('style','padding-left:20px');
+    // dow_btn.setAttribute("onclick","download(data['info']['id'])"); 
+    // dow_btn.setAttribute('name', 'download');
+    // dow_btn.innerHTML = 'Download'
+    // row_div.appendChild(dow_btn);
+
+    // document.getElementById('info').appendChild(row_div);
+
+
+  for (var i = 0; i < path_face.length; i++){
+
+
+    console.log(path_face[i].name)
+    img_string = "./get_face_db_img/"+ path_face[i].name + "#";
+
+    col_div = document.createElement('div');
+    col_div.setAttribute("id", path_face[i].path);
+    col_div.setAttribute('class', 'col')
+    col_div.setAttribute('style', 'padding-bottom: 55px;')
+
+    img = document.createElement('img');
+    img.setAttribute('src', img_string);
+    img.setAttribute('width','130');
+    img.setAttribute('height','130');
+    col_div.appendChild(img);
+
+    
+    delete_btn = document.createElement('button');
+    delete_btn.setAttribute('class', 'fa fa-trash-o button-delete');
+    delete_btn.setAttribute("id", path_face[i].path); 
+    delete_btn.setAttribute('style', 'position: absolute; left: 20px;')
+    delete_btn.setAttribute("onclick","removeSingleFaceDB(this.id)"); 
+    delete_btn.setAttribute('name', 'delete');
+    col_div.appendChild(delete_btn);
+
+    document.getElementById('list_img_face').appendChild(col_div);
+  }
+})
+
+function removeSingleFaceDB(id){
+
+    if (confirm('Are you sure you want to delete this image?')) {
+        txt = "You pressed OK!";
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('remove_single_face_DB') }}",
+            data : {'id': id}, 
+            success: function(results) {
+            console.log(results);
+            var person =document.getElementById(id); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+            person.parentNode.removeChild(person);
+                                                    
+            },
+            error: function(error) {
+            console.log(error);
+            }
+        });
+    } else {
+        txt = "You pressed Cancel!";
+    }
+    
+}
+
+
+function modify_info(id){
+    var name = document.getElementById('name').value;
+    console.log(name)
+    // var id_face = document.getElementById('id').value;
+    var gender = document.getElementById('gender').value;
+    var age = document.getElementById('age').value;
+
+    if (confirm("Are you sure you want to modify info " + name + ' ?')) {
+        txt = "You pressed OK!";
+        $.ajax({
+            url: './send_result_info',
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',  
+            data: JSON.stringify({"name": name, 'age': age, 'gender': gender, 'id': id}),
+            success: function (response) {
+                console.log(response);
+            }
+        }).done(function() {
+          $('#respMessage').prepend('<span>modified: ' + name + '<span><br>');
+          show_and_hide_alert();
+        }).fail(function() {
+          $('#respMessage').prepend('<span>Internal error!</span><br>');
+        });
+    } else {
+        txt = "You pressed Cancel!";
+    }
+    console.log(txt);
+}
+function download(id) {
+  const link = document.createElement("a");
+  link.href = "./downloadFile/" + id;
+  link.download = id;
+  link.click();
+}
+function show_and_hide_alert() {
+  $('#respMessage').fadeIn(300);
+  setTimeout(function() { 
+      $('#respMessage').fadeOut(600); 
+  }, 5000);
+}
+
+</script>
+</html>

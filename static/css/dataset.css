@@ -1,0 +1,87 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto?subset=vietnamese:wght@200;300;400;500;600;700&display=swap,subset=vietnamese');
+*{
+  font-family: "Roboto", sans-serif;
+} */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@200;300;400;500;600;700&display=swap,subset=vietnamese');
+*{
+  font-family: "Roboto", sans-serif;
+}
+
+.tb
+{
+    display: table;
+    width: 100%;
+}
+
+.td
+{
+    display: table-cell;
+    vertical-align: middle;
+}
+
+body{
+    text-align: center;
+  }
+
+#searchName{
+    border: 1px solid #000000;
+    border-right: none;
+    /* border-left: none; */
+    border-radius: 5px 0 0 5px;
+}
+
+#searchButton {
+    width: 40px;
+    height: 38px;
+    border: 1px solid #000000;
+    border-left: none;
+    background: #ffffff;
+    text-align: center;
+    color: rgb(0, 0, 0);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+#searchName:hover{
+    border: 1px solid #00B4CC;
+}
+
+#searchButton:hover {
+    width: 40px;
+    height: 38px;
+    border: 1px solid #00B4CC;
+    background: #00B4CC;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+}
+#searchButton i{
+color: #0052cc;
+}
+
+#backButton {
+    width: 40px;
+    height: 38px;
+    border: 1px solid #000000;
+    border-left: none;
+    background: #ffffff;
+    text-align: center;
+    color: rgb(0, 0, 0);
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+}
+#backButton:hover {
+    width: 40px;
+    height: 38px;
+    border: 1px solid #da0000;
+    background: #da0000;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+}

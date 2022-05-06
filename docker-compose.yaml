@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+    service:
+        build:
+            context: ./
+            dockerfile: dockerfile_cpu
+        container_name: web_label_face_reg
+        ports:
+            - 8000:80
+        networks:
+            - service_net
+        restart: unless-stopped
+        volumes:
+            - ./storage:/root/storage/
+        # deploy:
+        #   resources:
+        #     reservations:
+        #       devices:
+        #       - driver: nvidia
+        #         count: 1
+        #         device_ids: ['2']
+        #         capabilities: [gpu]
+networks:
+    service_net:
+        external: true

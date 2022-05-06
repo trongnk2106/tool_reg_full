@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>FACE REG LABEL TOOL</title>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/base.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+    <script type="text/javascript" src="static/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="static/js/downloadvideo.js"></script>
+    <script src="https://kit.fontawesome.com/3034ce02d7.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="header">
+      <nav class="navbar navbar-dark bg-dark" style="background-color: #878a8a; padding: 4px 16px">
+        <div class="col-md-6 col-sm-6" style="text-align: left;"> 
+            <img src="static/figure/logo.png" alt="Logo AI" width="40" height="40">
+            <h3 class="navbar-brand">Face Reg Label Tool</h3>
+        </div>
+        <div class="col-md-2 col-sm-2">
+        </div>
+        <div class="col-md-4 navbar-link" > 
+          <a href="/fr_data_collector/" title="Home" > Home </a> 
+          <a href="/fr_data_collector/home" title="Streaming" class="active"> Streaming </a>
+          <a href="/fr_data_collector/dataset?index=1" title="Database" > Database </a>
+        </div>
+      </nav>
+    </div>
+    <div class="alert alert-success" style="display:none;" role="alert" id="respMessage"></div>
+    <div class="container-fluid" style="margin-top:7%;">
+      
+      <div class="row heading-text" >
+        <div class="col streaming-text">
+          <span>Streaming</span>
+          <!-- <button type="button" id="btn-home" style="margin-right: -50%;" class="btn btn-primary btn-xs" onclick="removeCam('all_remove')" ><i class="fa"></i>remove All Cam</button> -->
+        </div>
+        <div class="col face-list-text">
+          <span>Face List</span>
+          
+          <!-- <label style="color: rgb(0, 0, 0);">Size Face: </label> -->
+          <select style="display:none" id="sizeFace" class="form-select form-select-lg" onchange="changeSizeFace()" aria-label=".form-select-lg example">
+            <option selected value="2">Small</option>
+            <option value="7">Medium</option>
+            <option value="10">Large</option>
+          </select>
+        </div>
+        <!-- <div class="col-md-2">
+          
+        </div> -->
+      </div>
+      <div class="row" >        
+        <div class="col" style="margin: 10px 5% 0% 10%; border-right: 1px solid;" id="surveillance_panel"></div>
+        
+        <div class="col" id="show_info" style="overflow-x: hidden ; overflow-y: hidden; overflow-y: scroll; height: 600px;">
+        
+        </div>
+      </div>
+      <div class="row">
+        <div class="col"></div>
+        <div class="col" style="text-align: center;">
+          <button type="button" id="btn-faceCluster" class="btn btn-success btn-xs" onclick="faceCluster()" ><i class="fa"></i>Face Cluster</button>
+          <button type="button" id="btn-removeAllFace" class="btn btn-success btn-xs" onclick="removeAllFace()" ><i class="fa"></i>Remove All</button>
+        </div>
+      </div>
+  </div> 
+  <div class="no-video middle" style="display: none;">
+    <p2>No Video Streaming</p2>
+  </div>
+  <!--- SCRIPTS --->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> -->
+</body>
+
+<script type="text/javascript">
+    var data = '{{ data | tojson}}';
+    data = JSON.parse(data);
+    console.log(data);
+    var dict_cam_stream = {};
+
+    window.onload = function exampleFunction() {
+        // console.log(data.length);
+        if (jQuery.isEmptyObject(data) == false) {
+            video_path = data['video_path']
+            name_video = data['name_video']
+            detectionMethod_start = data['detectionMethod']
+
+            addCamera(video_path, detectionMethod_start)
+        }
+        else {
+            addCamera("None", "None")
+        }
+    }
+
+    function addCamera(camURL, detectionMethod_start, sizeFace_start) {
+        var fpstweak = false
+
+        if (detectionMethod_start === undefined) {
+            var detectionMethod = document.getElementById("detectionMethod").value;
+        } else {
+            var detectionMethod = detectionMethod_start;
+        }
+
+        var sizeFace = document.getElementById("sizeFace").value;
+        // var camURL = document.getElementById("camURL").value;
+        console.log("Front end logging:"  + camURL + " sizeFace: " + sizeFace, "Detection Method: " + detectionMethod);
+        random_key_stream = String(Math.floor(Math.random() * 10000))
+        $.ajax({
+            type: "POST",
+            // url: "{{ url_for('add_camera') }}",
+            url: './add_camera',
+            data : {'camURL': camURL,'detectionMethod': detectionMethod ,'sizeFace': sizeFace,'fpstweak': fpstweak, 'random_key_stream':random_key_stream},
+            success: function(cam) {
+                console.log(cam);
+                var viddiv = document.createElement("div");
+                viddiv.setAttribute("class","col-md-4 col-sm-6 col-xs-12"); 
+                viddiv.setAttribute("id",cam.camNum);
+                var vidstream = document.createElement("img");
+                // vidstream.setAttribute("class","img-thumbnail panel panel-default"); 
+
+                vidstream.setAttribute("id",cam.camNum + "_video"); 
+                vidstream.setAttribute("src","./video_streamer/" + cam.camNum + '?' + random_key_stream); 
+                vidstream.setAttribute("width","800"); 
+                vidstream.setAttribute("height","500");
+                viddiv.appendChild(vidstream);
+                // dict_cam_stream[cam.camNum] = random_key_stream
+
+                var vidcontent = document.createElement("div");
+                vidcontent.setAttribute("class","content");
+                var vidplay = document.createElement("button");
+                vidplay.setAttribute("class","play btn_video");
+                vidplay.setAttribute("id",cam.camNum + "_play");
+                vidplay.setAttribute("onclick","restartCam(this.id)");
+                vidplay.innerHTML = '<i class="fas fa-play"></i>';
+                vidcontent.appendChild(vidplay);
+                var vidpause = document.createElement("button");
+                vidpause.setAttribute("class","pause btn_video");
+                vidpause.setAttribute("id",cam.camNum + "_pause");
+                vidpause.setAttribute("onclick","stopCam(this.id)");
+                vidpause.innerHTML = '<i class="fa fa-pause"></i>';
+                vidcontent.appendChild(vidpause);
+                var vidremove = document.createElement("button");
+                vidremove.setAttribute("class","remove btn_video");
+                vidremove.setAttribute("id",cam.camNum + "_remove");
+                vidremove.setAttribute("onclick","removeCam(this.id)");
+                vidremove.innerHTML = '<i class="fas fa-trash"></i>';
+                vidcontent.appendChild(vidremove);
+                viddiv.appendChild(vidcontent);
+
+
+                document.getElementById("surveillance_panel").appendChild(viddiv);
+
+                $('#addcam').html('Add Camera');
+            },
+            error: function(error) {
+                console.log(error);
+                // con = document.getElementsByClassName("container-fluid")
+                $('.container-fluid').remove();
+
+                $(".no-video").html("<p2>No Video Streaming</p2>");
+                $(".no-video").fadeIn(100);
+                // $('#respMessage').text('Please enter a name or a URI');
+                // $('#respMessage').fadeIn(300)
+            }
+        });
+    }
+    $(document).ready(function(){
+        // var socket = io.connect('http://' + document.domain + ':' + location.port + '/surveillance');
+//        var socket = io.connect("https://aiclub.uit.edu.vn/surveillance");
+//        var socket = io.connect("http://192.168.28.44:5000/surveillance");
+         var socket = io.connect('https://aiclub.uit.edu.vn/surveillance', {path: "/fr_data_collector/socket.io"});
+        // console.log(url);
+        socket.on('connect', function () {
+            socket.emit('my_event', 'User has connected!');
+        });
+        socket.on('people_detected', function(json) {
+            console.log("Received peopledata in Loop" + json);
+            var people = JSON.parse(json);
+
+            for (var i = 0; i < people.length; i++){
+                if(!document.getElementById(people[i].identity + "_" + people[i].camera)){
+                    var img_string = "./get_face_img/"+ people[i].identity +"_" + people[i].camera + "#";
+                    // table_child = '<table style="background-color:#ffffff"><tr><td rowspan="2" id="div_img"><img src="' + 
+                    //   img_string + '"' + 'width="90" height="90"></td><td id="name_face"><b>'
+                    //     +people[i].prediction+'</b></td></tr><tr><td><button class="btn btn-danger" button type="submit" name="delete" value="button-delete">Xóa</button></td></tr></table>'
+                    child_div = document.createElement('div');
+                    child_div.setAttribute("id", people[i].identity + "_"+ people[i].camera);
+                    child_div.setAttribute('class', 'row face')
+
+                    table_child = document.createElement('table')
+                    table_child.setAttribute('style',"background-color:#ffffff");
+                    child_div.appendChild(table_child);
+                    imgtr = document.createElement('tr')
+                    table_child.appendChild(imgtr)
+
+                    imgtd = document.createElement('td');
+                    imgtd.setAttribute('rowspan','3');
+                    imgtd.setAttribute('id','div_img')
+                    imgtr.appendChild(imgtd)
+
+                    img = document.createElement('img');
+                    img.setAttribute('src', img_string);
+                    img.setAttribute('class', 'avatar');
+                    img.setAttribute('width','90');
+                    img.setAttribute('height','90');
+                    imgtd.appendChild(img);
+
+                    nametd = document.createElement('td');
+                    nametd.setAttribute("id", people[i].identity + "_"+ people[i].camera+"_prediction");
+                    nametd.setAttribute('class', 'input_text');
+                    imgtr.appendChild(nametd);
+
+                    var input = document.createElement("input");
+                    input.setAttribute("placeholder","Enter Name"); 
+                    input.setAttribute("type","text");  
+                    input.setAttribute("id", people[i].identity + "_" + people[i].camera+ "_input");   
+                    input.setAttribute("onInput","keypressCluster(this.id,event)");
+                    nametd.appendChild(input)
+                    
+
+                    timetr = document.createElement('tr');
+                    table_child.appendChild(timetr);
+
+                    timetd = document.createElement('td');
+                    timetr.appendChild(timetd);
+
+                    p_time = document.createElement('b')
+                    p_time.innerHTML = "<span style='font-size: 13px; font-weight: 300;'>"+people[i].timeD + "</span>"
+                    timetd.appendChild(p_time);
+
+                    btntr = document.createElement('tr');
+                    table_child.appendChild(btntr);
+
+                    btntd = document.createElement('td');
+                    btntr.appendChild(btntd);
+
+                    delete_btn = document.createElement('button');
+                    // delete_btn.setAttribute('class', 'btn btn-danger');
+                    delete_btn.setAttribute('class', 'button-default button-default-red');
+                    delete_btn.setAttribute("id",people[i].identity + "_"+ people[i].camera+"_remove"); 
+                    delete_btn.setAttribute("onclick","removeFace(this.id)"); 
+                    delete_btn.setAttribute('name', 'delete');
+                    delete_btn.innerHTML = 'delete'
+                    btntd.appendChild(delete_btn);
+
+                    add_btn = document.createElement('button');
+                    // add_btn.setAttribute('class', 'btn btn-primary');
+                    add_btn.setAttribute('class', 'button-default button-default-blue');
+                    add_btn.setAttribute("id",people[i].identity + "_"+ people[i].camera+"_add"); 
+                    add_btn.setAttribute("onclick","addFace(this.id)"); 
+                    add_btn.setAttribute('name', 'add');
+                    add_btn.innerHTML = 'add'
+                    btntd.appendChild(add_btn);
+
+                    document.getElementById('show_info').prepend(child_div)
+                }
+            }
+        });
+
+        socket.on('system_data', function(json) {
+            console.log("System Data: " + json);
+            var system_data = JSON.parse(json);
+
+            if (system_data.onConnect == true){
+                var i = 0;
+                for (; i < system_data.cameras.length;i++) {
+                    var elementExists = document.getElementById(system_data.cameras[i].camNum)
+                    if (elementExists != null){
+                        break
+                    }
+
+                    console.log("Cameras:" + system_data.cameras[i]);
+
+                    var viddiv = document.createElement("div");
+                    viddiv.setAttribute("class","col-md-4 col-sm-6 col-xs-12"); 
+                    viddiv.setAttribute("id",system_data.cameras[i].camNum);
+                    var vidstream = document.createElement("img");
+                    // vidstream.setAttribute("class","img-thumbnail panel panel-default"); 
+
+                    vidstream.setAttribute("id",system_data.cameras[i].camNum + "_video"); 
+                    vidstream.setAttribute("src","./video_streamer/" + system_data.cameras[i].camNum + '?' + system_data.cameras[i].random_key_stream); 
+                    vidstream.setAttribute("width","800"); 
+                    vidstream.setAttribute("height","500");
+                    viddiv.appendChild(vidstream);
+                    // dict_cam_stream[cam.camNum] = random_key_stream
+
+                    var vidcontent = document.createElement("div");
+                    vidcontent.setAttribute("class","content");
+                    var vidplay = document.createElement("button");
+                    vidplay.setAttribute("class","play btn_video");
+                    vidplay.setAttribute("id",system_data.cameras[i].camNum + "_play");
+                    vidplay.setAttribute("onclick","restartCam(this.id)");
+                    vidplay.innerHTML = '<i class="fas fa-play"></i>';
+                    vidcontent.appendChild(vidplay);
+                    var vidpause = document.createElement("button");
+                    vidpause.setAttribute("class","pause btn_video");
+                    vidpause.setAttribute("id",system_data.cameras[i].camNum + "_pause");
+                    vidpause.setAttribute("onclick","stopCam(this.id)");
+                    vidpause.innerHTML = '<i class="fa fa-pause"></i>';
+                    vidcontent.appendChild(vidpause);
+                    var vidremove = document.createElement("button");
+                    vidremove.setAttribute("class","remove btn_video");
+                    vidremove.setAttribute("id",system_data.cameras[i].camNum + "_remove");
+                    vidremove.setAttribute("onclick","removeCam(this.id)");
+                    vidremove.innerHTML = '<i class="fas fa-trash"></i>';
+                    vidcontent.appendChild(vidremove);
+                    viddiv.appendChild(vidcontent);
+
+
+                    document.getElementById("surveillance_panel").appendChild(viddiv);
+
+                }
+            }
+        });
+
+    });
+
+    function removeAllFace(){
+        var faces = document.getElementsByClassName('row face');
+        while(faces.length > 0){
+            removeFace(faces[0].id);
+            faces[0].parentNode.removeChild(faces[0]);
+        }
+    }
+
+    function removeFace(id){
+        
+      //var text=$('#' + id + '_input').html();
+      var values = id.split('_');
+
+      var name = values[0];
+      var camera = values[1];
+      // var person =document.getElementById(name + "_" + camera); //remove person from div
+      // person.parentNode.removeChild(person);
+
+      $.ajax({
+            type: "POST",
+            url: "./remove_face",
+            data : {'predicted_name': name, 'camera': camera}, 
+            success: function(results) {
+              console.log(results);
+              var person =document.getElementById(name + "_" + camera); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+              person.parentNode.removeChild(person);
+                                                    
+            },
+            error: function(error) {
+              console.log(error);
+            }
+      });
+    }
+
+    function addFace(id){
+        var values = id.split('_');
+        var name = values[0];
+        var camera = values[1];
+
+        var newName = document.getElementById(name + "_" + camera + "_input").value;
+        var person =document.getElementById(name + "_" + camera); //remove person from div
+        person.parentNode.removeChild(person);
+        $.ajax({
+            type: "POST",
+            url: "./add_face",
+            data : {'person_id': name, 'new_name': newName, 'camera' : camera}, 
+            success: function(results) {
+                console.log(results);
+                
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+
+    function removeCam(id){
+        var values = id.split('_');
+
+        var camID = values[0];
+
+        if (camID == 'all'){
+            console.log('remove all cam');
+            const panel = document.getElementById("surveillance_panel")
+            panel.innerHTML = '';
+        }
+
+        $.ajax({
+                type: "POST",
+                url: "./remove_camera",
+                data : {'camID': camID},
+                success: function(results) {
+                    console.log(results);
+                    var person =document.getElementById(camID); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+                    person.parentNode.removeChild(person);
+                                                      
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+        });
+      }
+
+    function stopCam(id){
+        var values = id.split('_');
+
+        var camID = values[0];
+        // var person =document.getElementById(name + "_" + camera); //remove person from div
+        // person.parentNode.removeChild(person);
+
+        $.ajax({
+            type: "POST",
+            // url: "{{ url_for('stop_camera') }}",
+            url: "./stop_camera",
+            data : {'camID': camID},
+            success: function(results) {
+                console.log(results);
+                // var person =document.getElementById(camID); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+                // person.parentNode.removeChild(person);
+                                                    
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    function restartCam(id){
+            //var text=$('#' + id + '_input').html();
+            var values = id.split('_');
+
+            var camID = values[0];
+            // var person =document.getElementById(name + "_" + camera); //remove person from div
+            // person.parentNode.removeChild(person);
+
+            $.ajax({
+                type: "POST",
+                // url: "{{ url_for('restart_camera') }}",
+                url: "./restart_camera",
+                data : {'camID': camID},
+                success: function(results) {
+                    console.log(results);
+                    // var person =document.getElementById(camID); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+                    // person.parentNode.removeChild(person);
+                                                      
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+    }
+    var dict_key_cluster = {};
+
+    function faceCluster(){
+        console.log('da vao face cluster')
+        $.ajax({
+            type: "GET",
+            // url: "{{ url_for('face_cluster') }}",
+            url: './face_cluster',
+            success: function(results) {
+                $('#respMessage').prepend('<span>Face Cluster Completed</span><br>');
+                show_and_hide_alert();
+                console.log( 'clusters : ', results);
+                console.log(results['clusters']);
+                for (const [key, value] of Object.entries(results['clusters'])) {
+                    console.log(key, value);
+                    clusters_id = results['clusters'][key];
+                    // console.log("clusters_id: ", clusters_id);
+                    for (i=0; i<clusters_id.length; i++){
+                        // console.log('i:', i);
+                        console.log('key:', key, 'clusters_id[i]:', clusters_id[i]);
+                        // list_id = clusters_id[i];
+                        for (j=0; j<clusters_id[i].length; j++){
+                            // console.log('j:', j);
+                            id_cluster = clusters_id[i][j];
+                            cam_id = results['cam'][id_cluster];
+
+                            var id_input = id_cluster + "_" + cam_id + "_input";
+                            // console.log('id_input:', id_input);
+                            var input = key + "_" + i
+                            // console.log('input:', input);
+                            dict_key_cluster[id_input] = input;
+                        }
+                    }
+                }
+                update_Cluster();
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    function update_Cluster(){
+        for (const [key, value] of Object.entries(dict_key_cluster)) {
+            // console.log(key, value);
+            random_name = (Math.random() + 1).toString(36).substring(7)
+            document.getElementById(key).value = value;
+        }
+    }
+
+    function keypressCluster(id, event){
+        console.log(dict_key_cluster);
+        // document.getElementById('myInput').value = ''
+        const get_value = event.target.value;
+        var value_cluster = dict_key_cluster[id];
+        console.log("value_cluster: ", value_cluster);
+        for (const [key, value] of Object.entries(dict_key_cluster)) {
+            // console.log(key, value);
+            if (value == value_cluster && key != id){
+              // console.log("key: ", key);
+              document.getElementById(key).value = get_value;
+            }
+        }
+    }
+
+    function changeSizeFace() {
+        var x = document.getElementById("sizeFace").value;
+        console.log('change size face', x);
+        $.ajax({
+          type: "POST",
+          // url: "{{ url_for('restart_camera') }}",
+          url: "./resize_face",
+          data : {'camNum': 0, 'size': x},
+          success: function(results) {
+            console.log(results);                                 
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
+    }
+    function show_and_hide_alert() {
+    $('#respMessage').fadeIn(300);
+    setTimeout(function() { 
+        $('#respMessage').fadeOut(600); 
+    }, 5000);
+    }
+
+</script>
+</html>

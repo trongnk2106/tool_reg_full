@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@200;300;400;500;600;700&display=swap,subset=vietnamese');
+*{
+  font-family: "Roboto", sans-serif;
+}
+
+
+/* ------------------ navbar-link ------------------------------------ */
+body {
+  font-family: "Literata", serif;
+  font-size: 18px;
+  line-height: 1.3;
+  /* text-align: center; */
+}
+
+.navbar-link {
+  text-align: center;
+}
+
+.navbar-link a {
+  color: #fff;
+  margin: 0 5px 0 5px;
+  text-decoration:none;
+}
+.navbar-link a:hover {
+  color: #fff;
+  border-bottom: 1px solid #fff;
+}
+.navbar-link a.active {
+  color: #fff;
+  border-bottom: 1px solid #fff;
+}

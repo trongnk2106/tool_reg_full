@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>FACE REG DATASET</title>
+  <link href="static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="static/css/base.css" rel="stylesheet">
+  <link href="static/css/main.css" rel="stylesheet">
+  <link href="static/css/dataset.css" rel="stylesheet">
+  <script type="text/javascript" src="static/js/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="static/js/downloadvideo.js"></script>
+  <script src="https://kit.fontawesome.com/3034ce02d7.js" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+
+
+<body>
+    <div class="header">
+      <nav class="navbar navbar-dark bg-dark" style="background-color: #878a8a; padding: 4px 16px">
+        <div class="col-md-6 col-sm-6" style="text-align: left;"> 
+            <img src="static/figure/logo.png" alt="Logo AI" width="40" height="40">
+            <h3 class="navbar-brand">Face Reg Label Tool</h3>
+        </div>
+        <div class="col-md-2 col-sm-2">
+        </div>
+        <div class="col-md-4 navbar-link" > 
+          <a href="/fr_data_collector/" title="Home"> Home </a> 
+          <a href="/fr_data_collector/home" title="Streaming"> Streaming </a>
+          <a href="/fr_data_collector/dataset?index=1" title="Database" class="active"> Database </a>
+        </div>
+      </nav>
+    </div>
+    <div class="alert alert-success" style="display:none;" role="alert" id="respMessage"></div>
+    <div class="container" style="margin-top:50px;">
+        <div class="row">
+          <div class="col-md-2"></div>
+          <div class="col-md-8">
+            <div class="row">
+            <!-- <button onclick="goBack()" class="fas fa-times" id="backButton"></button> -->
+            <form id="formSearch" class="input-group" style="width:98%">
+              <input type="text" size="3" name="searchName" id="searchName" class="searchTerm form-control" placeholder="Enter Person Name" required>
+
+              <div class="input-group-append">
+                <button type="button" id="searchButton" class="fas fa-search" >
+                </button>
+                <button onclick="goBack()" class="fas fa-times" id="backButton"></button>
+              </div>
+            </form>
+          </div>
+          </div>
+          <div class="col-md-2">
+            <div class='col-md-6'><button type="button" style="position: absolute; right: 0px;" id="download" class="btn btn-success btn-xs" ><i class="fa"></i>Download</button></div>
+          </div>
+        </div>
+        <div class='row' style="margin-top: 20px; margin-bottom: 20px;">
+            <div id="div_total_page" style="text-align: left; bottom: -15px;" class='col-md-6'><h4>Danh sách người trong tập dữ liệu</h4></div>
+            <!-- <div class='col-md-6'><button type="button" style="position: absolute; right: 0px;" id="download" class="btn btn-success btn-xs" ><i class="fa"></i>Download database</button></div> -->
+          </div>
+        
+        <div class="row" id='db_face'>
+          
+        </div>
+        <nav aria-label="..." style="margin-top:30px; margin-bottom:30px">
+          <ul class="pagination justify-content-center" id="div_page">
+          </ul>
+        </nav>
+  </div> 
+  <!--- SCRIPTS --->
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> -->
+</body>
+
+<script type="text/javascript">
+var data = '{{ data | tojson}}';
+data = JSON.parse(data);
+console.log(data);
+var num_page = data['num_page'];
+var list_path = data['list_path'];
+
+$(document).ready(function(){
+    console.log(data['num_page']);
+    var url = new URL(window.location.href);
+    var cur_index = parseInt(url.searchParams.get("index"));
+    if (cur_index == 'undefined'){
+        cur_index = 1;
+    }
+    var i = cur_index-3;
+    var iDiv = document.createElement('li');
+    iDiv.className = 'page-item';
+    iDiv.innerHTML = '<span class="page-link">Previous</span>';
+    document.getElementById("div_page").appendChild(iDiv);
+    if (cur_index > 1){
+        iDiv.innerHTML = '<a class="page-link" href="?index=' + (cur_index -1).toString() + '">Previous</a>';
+        document.getElementById("div_page").appendChild(iDiv);
+    }
+    for (i; ((i <= data['num_page']) && (i <= cur_index+3)); i++){
+        if (i < 1){
+            i = 1;
+        }
+        if (i != cur_index){
+          il = document.createElement('li');
+          il.className = 'page-item';
+          il.innerHTML = '<a class="page-link" href="?index=' + i.toString() + '">'+i.toString()+'</a>';
+          document.getElementById("div_page").appendChild(il);
+        }
+        else
+        { 
+          il = document.createElement('li');
+          il.className = 'page-item active';
+          il.innerHTML = '<span class="page-link">' + i.toString() + '<span class="sr-only">(current)</span></span>';
+          document.getElementById("div_page").appendChild(il);
+        }
+    }
+    var iDiv = document.createElement('li');
+    iDiv.className = 'page-item';
+    iDiv.innerHTML = '<span class="page-link">Next</span>';
+    document.getElementById("div_page").appendChild(iDiv);
+    if (cur_index < data['num_page'] - 1){
+        iDiv.innerHTML = '<a class="page-link" href="?index=' + (cur_index +1).toString()  + '">Next</a>';
+        document.getElementById("div_page").appendChild(iDiv);
+    }
+    document.getElementById("div_total_page").getElementsByTagName('h4')[0].innerHTML = data['num_person'] + " Persons".toString();
+});
+
+$(document).ready(function(){
+  for (var i = 0; i < list_path.length; i++){
+    console.log(list_path[i].name)
+    img_string = "./get_face_db_img/"+ list_path[i].id + "_" +'0' + "#";
+
+    child_div = document.createElement('div');
+    child_div.setAttribute("id", list_path[i].id);
+    child_div.setAttribute('class', 'col')
+    child_div.setAttribute('style', 'padding-bottom: 50px;')
+
+    table_child = document.createElement('table')
+    table_child.setAttribute('style',"background-color:#ffffff");
+    child_div.appendChild(table_child);
+    imgtr = document.createElement('tr')
+    table_child.appendChild(imgtr)
+
+    imgtd = document.createElement('td');
+    imgtd.setAttribute('rowspan','2');
+    imgtd.setAttribute('id','div_img')
+    imgtr.appendChild(imgtd)
+
+    img = document.createElement('img');
+    img.setAttribute('src', img_string);
+    // img.setAttribute('class', 'avatar');
+    img.setAttribute('width','130');
+    img.setAttribute('height','130');
+    imgtd.appendChild(img);
+
+    nametd = document.createElement('td');
+    nametd.setAttribute("id", list_path[i].id+"_prediction");
+    imgtr.appendChild(nametd);
+
+    nameb = document.createElement('b');
+    img.setAttribute('style','font-size: 120%');
+    nameb.innerHTML = "<strong>"+list_path[i].name+"</strong><br/><span style='font-size: 13px; font-weight: 500;'>"+list_path[i].id + "</span>";
+    nametd.appendChild(nameb)
+
+    
+
+    btntr = document.createElement('tr');
+    table_child.appendChild(btntr);
+
+    btntd = document.createElement('td');
+    btntr.appendChild(btntd);
+
+    modify_btn = document.createElement('button');
+    modify_btn.setAttribute('class', 'fas fa-edit button-edit');
+    modify_btn.setAttribute("id", list_path[i].id + "_modify"); 
+    modify_btn.setAttribute("onclick","go_single(this.id)"); 
+    modify_btn.setAttribute('name', 'modify');
+    // modify_btn.innerHTML = 'modify'
+    btntd.appendChild(modify_btn);
+
+    delete_btn = document.createElement('button');
+    delete_btn.setAttribute('class', 'fa fa-trash-o button-delete');
+    delete_btn.setAttribute("id", list_path[i].id + "_remove"); 
+    delete_btn.setAttribute("onclick","removeFaceDB(this.id)"); 
+    delete_btn.setAttribute('name', 'delete');
+    // delete_btn.innerHTML = 'delete';
+    btntd.appendChild(delete_btn);
+
+    document.getElementById('db_face').appendChild(child_div)
+
+    document.getElementById('searchName').value = new URL(location.href).searchParams.get('nameSearch')
+  }
+})
+
+function removeFaceDB(id){
+    
+    var values = id.split('_');
+    var name = values[0];
+
+    if (confirm("Delete " + name + ' in Database')) {
+        txt = "You pressed OK!";
+        $.ajax({
+          type: "POST",
+          url: "{{ url_for('remove_face_DB') }}",
+          data : {'name': name}, 
+          success: function(results) {
+            console.log(results);
+            var person =document.getElementById(name); //sometimes faces get reloaded before before they have been deleted this ensures they are removed from the list
+            person.parentNode.removeChild(person);                               
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
+    } else {
+        txt = "You pressed Cancel!";
+    }
+    console.log(txt);
+  }
+
+function go_single(id){
+  var values = id.split('_');
+  var name = values[0];
+  console.log('go single', name)
+  // window.open("/single_people?id="+name);
+  location.replace("./single_people?id="+name);
+}
+
+$('#download').bind('click', function(event) {
+  const link = document.createElement("a");
+  link.href = "./downloadDB/";
+  link.click();
+});
+
+$("#searchName").keypress(function(event) {
+    if (event.keyCode === 13) {
+        $("#searchButton").click();
+    }
+    console.log(event.keyCode);
+    
+});
+
+$(function(){
+  console.log('search')
+  if ($("#searchName").val() == ""){
+      $("#searchButton").show();
+      $("#backButton").hide();
+    }
+    else{
+      $("#searchButton").hide();
+      $("#backButton").show();
+    }
+})
+
+// $('#searchButton').bind('click', function(event) {
+//     var formData = new FormData($('#formSearch')[0]);
+//     var inputValue = formData.get("searchName");
+//     console.log(inputValue);
+//     location.replace('./dataset?index=0&nameSearch=' + inputValue);
+//   });
+
+jQuery(function($) {
+  
+
+  var $form = $('#formSearch');
+  
+  $("#searchButton").click(function(e) {
+    e.preventDefault();
+    
+    if (!$form[0].checkValidity()) {
+      $form[0].reportValidity();
+    } else {
+      $("#form").submit();
+      var formData = new FormData($('#formSearch')[0]);
+      var inputValue = formData.get("searchName");
+      console.log(inputValue);
+      location.replace('./dataset?index=1&nameSearch=' + inputValue);
+    }
+  });
+});
+
+function goBack() {
+  // window.history.go(-1);
+  $("#searchName").val("");
+  location.replace('./dataset?index=1');
+}
+
+
+</script>
+</html>

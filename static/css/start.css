@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@200;300;400;500;600;700&display=swap,subset=vietnamese');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+}
+
+
+body{
+    min-height: 100vh;
+  }
+
+.buttonDownload{
+    border-radius: 15px;
+    width: 150%;
+}
+
+.add_flex{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.input-area{
+    margin: 1% 0 2% 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 215px;
+    width: 350px;
+}
+.input-area input{
+    width: 250% !important;
+    height: 50px;
+}
+.drag-area{
+  border: 2px dashed rgb(48, 48, 48);
+  height: 450px;
+  width: 700px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.drag-area.active{
+  border: 2px solid rgb(0, 0, 0);
+}
+.drag-area .icon{
+  font-size: 150px;
+  color: #3498db;
+  margin-bottom: 5%;
+}
+.drag-area header{
+  font-size: 30px;
+  font-weight: 400;
+  color: rgb(17, 17, 17);
+}
+
+.drag-area label{
+  font-size: 30px;
+}
+
+.input-area header{
+    font-size: 30px;
+    font-weight: 500;
+    color: rgb(17, 17, 17);
+  }
+.drag-area span{
+  font-size: 25px;
+  font-weight: 500;
+  color: rgb(26, 26, 26);
+  margin: 10px 0 15px 0;
+}
+.drag-area button{
+  padding: 10px 25px;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background: #fff;
+  color: #5256ad;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.drag-area img{
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
+[type=file] + label {
+  padding: 10px 25px;
+  font-size: 25px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background: #fff;
+  color: #5256ad;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.input-area span {
+  font-size: 26px;
+  font-weight: 400;
+  color: rgb(26, 26, 26);
+  margin: 10px 0 15px 0;
+}
+.input-area #detectionMethod{
+  width: 80%;
+  height: 40px;
+  /* color: #898989;
+  font-size: 20px; */
+}
+#buttonDownload {
+  width: 280px;
+  font-size: 18px;
+}
+
+/* --------------- SELECT ----------------------- */
+select {
+  border:1px solid #d7d7d7;
+  height: 35px;
+  border-radius:2px;
+  background: #ffff;
+  font-size: 20px;
+}
+select:invalid {
+  color: gray; 
+}
+select:hover{
+  background:#cde4f7;
+  border:1px solid #41c9ff;
+}
+select:focus {
+  -webkit-box-shadow: 0 0 3px 1px #7cdaff;
+  -moz-box-shadow: 0 0 3px 1px #7cdaff;
+  box-shadow: 0 0 3px 1px #7cdaff;
+}
+select:before{
+  content: "▼";
+}
+option{
+  color: black;
+  background:#fff;
+  border-color:#41c9ff;
+  border-radius:2px;
+  line-height: 18px;
+  outline:none;
+  -webkit-box-shadow: 0 0 3px 1px #c00;
+  -moz-box-shadow: 0 0 3px 1px #c00;
+  box-shadow: 0 0 3px 1px #c00;
+}
+option:focus{
+-webkit-box-shadow: 0 0 3px 1px #7cdaff;
+  -moz-box-shadow: 0 0 3px 1px #7cdaff;
+  box-shadow: 0 0 3px 1px #7cdaff;
+}
